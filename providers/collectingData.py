@@ -1,5 +1,7 @@
 import yfinance
-from databaseConnection import openDatabaseConnection
+
+from providers.databaseConnection import openDatabaseConnection
+
 
 def downloadStockMarketData(tickers, start, end):
     for ticker in tickers:
@@ -14,9 +16,3 @@ def saveStockMarketDataOnDatabase(data, ticker):
     tableName = ticker.replace(' ', '_')
     data.to_sql(tableName, con, if_exists='replace', index=True)
     print(f'Data from {ticker} saved in table {tableName}')
-
-stockMarketTickers = ['AAPL', 'MSFT', 'GOOGL']
-dateStart = '2023-01-01'
-dateEnd = '2023-12-31'
-
-downloadStockMarketData(stockMarketTickers, dateStart, dateEnd)
