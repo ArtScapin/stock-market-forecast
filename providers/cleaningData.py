@@ -1,12 +1,14 @@
 import pandas
 from providers.databaseConnection import openDatabaseConnection
 from workalendar.america import Brazil
+from sklearn.preprocessing import MinMaxScaler
 
 
 def clearData(ticker):
     dataframe = getTickerRawData(ticker)
     dataframe = removeDuplicates(dataframe)
     dataframe = dataImputationForNullData(dataframe)
+    dataframe = applyMinMaxScaling(dataframe)
 
     return dataframe
 
@@ -45,10 +47,19 @@ def dataImputationForNullData(tickerDataframe):
     return tickerDataframe
 
 def getB3WorkingDays(startDate, endDate):
-        businessDays = pandas.date_range(start=startDate, end=endDate, freq='B')
-        cal = Brazil()
-        workingDays = [day for day in businessDays if cal.is_working_day(day)]
-        return pandas.to_datetime(workingDays)
+    businessDays = pandas.date_range(start=startDate, end=endDate, freq='B')
+    cal = Brazil()
+    workingDays = [day for day in businessDays if cal.is_working_day(day)]
+
+    return pandas.to_datetime(workingDays)
+
+def applyMinMaxScaling(tickerDataframe):
+    columnsToScale = ['Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume']
+    scaler = MinMaxScaler()
+
+    tickerDataframe[columnsToScale] = scaler.fit_transform(tickerDataframe[columnsToScale])
+
+    return tickerDataframe
 
 def getAvaliableTikers():
     connection = openDatabaseConnection()
