@@ -1,3 +1,4 @@
+from providers.cleaningData import getAvaliableTikers, clearData
 from providers.collectingData import downloadStockMarketData
 
 def getInputWithDefault(prompt, default):
@@ -8,6 +9,7 @@ option = 1
 while option != 0:
     print("--------Serviços--------")
     print("1- Download de dados.")
+    print("2- Limpeza de dados.")
     print("0- Sair.")
     option = int(input("Número do serviço: "))
 
@@ -23,5 +25,19 @@ while option != 0:
         dateEnd = getInputWithDefault("Qual é a data final do período que deseja baixar os dados? (YYYY-MM-DD): ", '2023-12-31')
 
         downloadStockMarketData(tickers, dateStart, dateEnd)
+    elif option == 2:
+        tickers = getAvaliableTikers()
+        print("Tikers disponíveis para limpeza, selecione um:")
 
-    print("\n--------------------------------------------------------------------------------\n")
+        for index, ticker in enumerate(tickers, start=1):
+            print(f"{index}- {ticker}")
+        print(f"{0}- Voltar")
+
+        tickerOption = int(input("Ticker: "))
+
+        if 0 < tickerOption <= len(tickers):
+            ticker = tickers[tickerOption - 1]
+            print(clearData(ticker))
+
+    if option != 0:
+        print("\n--------------------------------------------------------------------------------\n")
