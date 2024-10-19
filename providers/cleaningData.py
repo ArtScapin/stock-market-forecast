@@ -1,4 +1,5 @@
 import pandas
+from sqlalchemy import text
 from providers.databaseConnection import openDatabaseConnection
 from workalendar.america import Brazil
 from sklearn.preprocessing import MinMaxScaler
@@ -9,8 +10,7 @@ def clearData(ticker):
     dataframe = removeDuplicates(dataframe)
     dataframe = dataImputationForNullData(dataframe)
     dataframe = applyMinMaxScaling(dataframe)
-
-    return dataframe
+    saveStockMarketDataOnDatabase(dataframe, ticker)
 
 def getTickerRawData(ticker):
     connection = openDatabaseConnection()
@@ -60,6 +60,15 @@ def applyMinMaxScaling(tickerDataframe):
     tickerDataframe[columnsToScale] = scaler.fit_transform(tickerDataframe[columnsToScale])
 
     return tickerDataframe
+
+def saveStockMarketDataOnDatabase(data, ticker):
+    engine = openDatabaseConnection()
+    tableName = ticker.replace(' ', '_')
+    data.to_sql(tableName, engine, if_exists='replace', index=True)
+    with engine.connect() as connection:
+        connection.execute(text(f'DROP TABLE "{tableName}_RAW";'))
+        connection.commit()
+    print(f'Dados já tratados de {ticker} salvos na tabela {tableName}.')
 
 def getAvaliableTikers():
     connection = openDatabaseConnection()
