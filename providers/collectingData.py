@@ -1,5 +1,5 @@
 import yfinance
-from providers.databaseConnection import openDatabaseConnection
+from providers.databaseConnection import saveStockMarketDataOnDatabase
 
 
 def downloadStockMarketData(tickers, start, end):
@@ -9,17 +9,11 @@ def downloadStockMarketData(tickers, start, end):
             data = yfinance.download(ticker, start, end)
             ticker = ticker.replace('.SA', '')
             if not data.empty:
-                saveStockMarketDataOnDatabase(data, ticker)
+                saveStockMarketDataOnDatabase(data, ticker, 1)
             else:
                 print(f'Sem dados para {ticker}.')
         else:
             print(f'{ticker} não encontrado na listagem de ativos da B3.')
-
-def saveStockMarketDataOnDatabase(data, ticker):
-    con = openDatabaseConnection()
-    tableName = ticker.replace(' ', '_') + '_RAW'
-    data.to_sql(tableName, con, if_exists='replace', index=True)
-    print(f'Dados de {ticker} salvos na tabela {tableName}.')
 
 def isB3Ticker(ticker):
     tickerInfo = yfinance.Ticker(ticker)

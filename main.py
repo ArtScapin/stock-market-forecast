@@ -1,5 +1,7 @@
-from providers.cleaningData import getAvaliableTikers, clearData
+from providers.cleaningData import clearData
 from providers.collectingData import downloadStockMarketData
+from providers.databaseConnection import getAvaliableTikers
+
 
 def getInputWithDefault(prompt, default):
     userInput = input(prompt)
@@ -26,7 +28,7 @@ while option != 0:
 
         downloadStockMarketData(tickers, dateStart, dateEnd)
     elif option == 2:
-        tickers = getAvaliableTikers()
+        tickers = getAvaliableTikers(1)
         print("Tikers disponíveis para limpeza, selecione um:")
 
         for index, ticker in enumerate(tickers, start=1):

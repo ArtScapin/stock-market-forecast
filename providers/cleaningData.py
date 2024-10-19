@@ -1,6 +1,5 @@
 import pandas
-from sqlalchemy import text
-from providers.databaseConnection import openDatabaseConnection
+from providers.databaseConnection import openDatabaseConnection, saveStockMarketDataOnDatabase
 from workalendar.america import Brazil
 from sklearn.preprocessing import MinMaxScaler
 
@@ -10,7 +9,7 @@ def clearData(ticker):
     dataframe = removeDuplicates(dataframe)
     dataframe = dataImputationForNullData(dataframe)
     dataframe = applyMinMaxScaling(dataframe)
-    saveStockMarketDataOnDatabase(dataframe, ticker)
+    saveStockMarketDataOnDatabase(dataframe, ticker, 0)
 
 def getTickerRawData(ticker):
     connection = openDatabaseConnection()
@@ -60,25 +59,3 @@ def applyMinMaxScaling(tickerDataframe):
     tickerDataframe[columnsToScale] = scaler.fit_transform(tickerDataframe[columnsToScale])
 
     return tickerDataframe
-
-def saveStockMarketDataOnDatabase(data, ticker):
-    engine = openDatabaseConnection()
-    tableName = ticker.replace(' ', '_')
-    data.to_sql(tableName, engine, if_exists='replace', index=True)
-    with engine.connect() as connection:
-        connection.execute(text(f'DROP TABLE "{tableName}_RAW";'))
-        connection.commit()
-    print(f'Dados já tratados de {ticker} salvos na tabela {tableName}.')
-
-def getAvaliableTikers():
-    connection = openDatabaseConnection()
-    sql = """
-        SELECT table_name as name 
-        FROM information_schema.tables 
-        WHERE table_schema='public' 
-        AND table_name LIKE '%%_RAW'
-    """
-    tables = pandas.read_sql(sql, connection)
-    data = tables['name'].tolist()
-
-    return [ticker.replace('_RAW', '') for ticker in data]
