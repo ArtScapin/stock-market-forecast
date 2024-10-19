@@ -1,22 +1,15 @@
 import pandas
-from providers.databaseConnection import openDatabaseConnection, saveStockMarketDataOnDatabase
+from providers.databaseConnection import openDatabaseConnection, saveStockMarketDataOnDatabase, getTickerData
 from workalendar.america import Brazil
 from sklearn.preprocessing import MinMaxScaler
 
 
 def clearData(ticker):
-    dataframe = getTickerRawData(ticker)
+    dataframe = getTickerData(ticker, 1)
     dataframe = removeDuplicates(dataframe)
     dataframe = dataImputationForNullData(dataframe)
     dataframe = applyMinMaxScaling(dataframe)
-    saveStockMarketDataOnDatabase(dataframe, ticker, 0)
-
-def getTickerRawData(ticker):
-    connection = openDatabaseConnection()
-    sql = f'SELECT * FROM "{ticker}_RAW" ORDER BY "Date" ASC'
-    data = pandas.read_sql(sql, connection)
-
-    return data
+    saveStockMarketDataOnDatabase(dataframe, ticker)
 
 def removeDuplicates(tickerDataframe):
     return tickerDataframe.drop_duplicates(subset=['Date'], keep='first')

@@ -39,7 +39,7 @@ while option != 0:
 
         if 0 < tickerOption <= len(tickers):
             ticker = tickers[tickerOption - 1]
-            print(clearData(ticker))
+            clearData(ticker)
 
     if option != 0:
         print("\n--------------------------------------------------------------------------------\n")

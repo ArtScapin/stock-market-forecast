@@ -17,7 +17,7 @@ def openDatabaseConnection():
 
     return engine
 
-def saveStockMarketDataOnDatabase(data, ticker, rawData):
+def saveStockMarketDataOnDatabase(data, ticker, rawData = 0):
     engine = openDatabaseConnection()
     tableName = ticker.replace(' ', '_')
     if rawData == 1:
@@ -50,5 +50,15 @@ def getAvaliableTikers(rawData = 0):
         """
     tables = pandas.read_sql(sql, connection)
     data = tables['name'].tolist()
+
+    return data
+
+def getTickerData(ticker, rawData = 0):
+    connection = openDatabaseConnection()
+    if rawData == 1:
+        sql = f'SELECT * FROM "{ticker}_RAW" ORDER BY "Date" ASC'
+    else:
+        sql = f'SELECT * FROM "{ticker}" ORDER BY "Date" ASC'
+    data = pandas.read_sql(sql, connection)
 
     return data
