@@ -1,14 +1,12 @@
 import pandas
-from providers.databaseConnection import openDatabaseConnection, saveStockMarketDataOnDatabase, getTickerData
+from providers.databaseConnection import saveStockMarketDataOnDatabase, getTickerData
 from workalendar.america import Brazil
-from sklearn.preprocessing import MinMaxScaler
 
 
 def clearData(ticker):
     dataframe = getTickerData(ticker, 1)
     dataframe = removeDuplicates(dataframe)
     dataframe = dataImputationForNullData(dataframe)
-    dataframe = applyMinMaxScaling(dataframe)
     saveStockMarketDataOnDatabase(dataframe, ticker)
 
 def removeDuplicates(tickerDataframe):
@@ -44,11 +42,3 @@ def getB3WorkingDays(startDate, endDate):
     workingDays = [day for day in businessDays if cal.is_working_day(day)]
 
     return pandas.to_datetime(workingDays)
-
-def applyMinMaxScaling(tickerDataframe):
-    columnsToScale = ['Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume']
-    scaler = MinMaxScaler()
-
-    tickerDataframe[columnsToScale] = scaler.fit_transform(tickerDataframe[columnsToScale])
-
-    return tickerDataframe
