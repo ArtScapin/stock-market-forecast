@@ -1,10 +1,15 @@
-import numpy as np
+import logging
+import os
 import matplotlib.pyplot as plt
+import numpy as np
 from sklearn.preprocessing import MinMaxScaler
-from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
+from tensorflow.keras.models import Sequential
+
 from providers.databaseConnection import getTickerData
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+logging.getLogger('tensorflow').setLevel(logging.ERROR)
 
 def analyzingDataWithLSTM(ticker):
     dataframe = getTickerData(ticker)
@@ -14,9 +19,9 @@ def analyzingDataWithLSTM(ticker):
 
     model, XTest, yTest = createAndTrainModel(dataframe)
 
-    predictedClosePrices, realClosePrices = makePredictions(model, XTest, yTest, scaler, dataframe.shape[1])
+    predictedPrices, realPrices = makePredictions(model, XTest, yTest, scaler)
 
-    plotPredictions(realClosePrices, predictedClosePrices)
+    plotPredictions(realPrices, predictedPrices, ticker)
 
     mse = model.evaluate(XTest, yTest)
     print(f'Mean Squared Error: {mse}')
@@ -28,28 +33,28 @@ def applyMinMaxScaling(data):
     return scaled_data, scaler
 
 
-def createSequences(data, look_back):
+def createSequences(data, lookBack):
     X, y = [], []
-    for i in range(look_back, len(data)):
-        X.append(data[i - look_back:i])
-        y.append(data[i, 3])
+    for i in range(lookBack, len(data)):
+        X.append(data[i - lookBack:i])
+        y.append(data[i])
     return np.array(X), np.array(y)
 
 
 def createAndTrainModel(data):
-    look_back = 60
-    X, y = createSequences(data, look_back)
+    lookBack = round(len(data) * 0.8)
+    X, y = createSequences(data, lookBack)
 
-    train_size = int(len(X) * 0.8)
-    XTrain, XTest = X[:train_size], X[train_size:]
-    yTrain, yTest = y[:train_size], y[train_size:]
+    trainSize = int(len(X) * 0.8)
+    XTrain, XTest = X[:trainSize], X[trainSize:]
+    yTrain, yTest = y[:trainSize], y[trainSize:]
 
     model = Sequential([
         LSTM(units=50, return_sequences=True, input_shape=(XTrain.shape[1], XTrain.shape[2])),
         Dropout(0.2),
         LSTM(units=50, return_sequences=False),
         Dropout(0.2),
-        Dense(units=1)
+        Dense(units=5)
     ])
 
     model.compile(optimizer='adam', loss='mean_squared_error')
@@ -59,28 +64,36 @@ def createAndTrainModel(data):
     return model, XTest, yTest
 
 
-def makePredictions(model, XTest, yTest, scaler, n_features):
-    predictedPrices = model.predict(XTest)
+def makePredictions(model, XTest, yTest, scaler):
+    sequence = XTest[0]
+    predictedPrices = []
 
-    predictedPricesFull = np.zeros((predictedPrices.shape[0], n_features))
-    predictedPricesFull[:, 3] = predictedPrices.flatten()
-    predictedPricesFull = scaler.inverse_transform(predictedPricesFull)
-    predictedClosePrices = predictedPricesFull[:, 3]
+    for _ in range(len(yTest)):
+        prediction = model.predict(sequence.reshape(1, sequence.shape[0], sequence.shape[1]))
+        predictedPrices.append(prediction[0])
+        sequence = np.roll(sequence, -1, axis=0)
+        sequence[-1] = prediction
 
-    yTestFull = np.zeros((yTest.shape[0], n_features))
-    yTestFull[:, 3] = yTest
-    yTestFull = scaler.inverse_transform(yTestFull)
-    realClosePrices = yTestFull[:, 3]
+    predictedPricesFull = scaler.inverse_transform(predictedPrices)
+    yTestFull = scaler.inverse_transform(yTest)
 
-    return predictedClosePrices, realClosePrices
+    return predictedPricesFull, yTestFull
 
 
-def plotPredictions(real, predicted):
-    plt.figure(figsize=(14, 5))
-    plt.plot(real, color='blue', label='Preço Real')
-    plt.plot(predicted, color='red', label='Preço Previsto')
-    plt.title('Comparação entre Preços Reais e Previstos')
-    plt.xlabel('Dias')
-    plt.ylabel('Preço de Fechamento')
-    plt.legend()
+def plotPredictions(real, predicted, ticker):
+    labels = ['Open', 'High', 'Low', 'Close', 'Volume']
+    numVars = len(labels)
+
+    plt.figure(figsize=(15, 3 * numVars))
+
+    for i in range(numVars):
+        plt.subplot(numVars, 1, i + 1)
+        plt.plot(real[:, i], color='blue', label='Real')
+        plt.plot(predicted[:, i], color='red', label='Previsão')
+        plt.title(f'Comparação entre Dados Reais e Previstos com LSTM - {ticker} ({labels[i]})')
+        plt.xlabel('Dias')
+        plt.ylabel(labels[i])
+        plt.legend()
+
+    plt.tight_layout()
     plt.show()
