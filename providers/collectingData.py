@@ -9,7 +9,7 @@ def downloadStockMarketData(tickers, start, end):
             data = yfinance.download(ticker, start, end)
             ticker = ticker.replace('.SA', '')
             if not data.empty:
-                saveStockMarketDataOnDatabase(data, ticker, 1)
+                saveStockMarketDataOnDatabase(data, ticker, 'RAW')
             else:
                 print(f'Sem dados para {ticker}.')
         else:

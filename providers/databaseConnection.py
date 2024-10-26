@@ -17,20 +17,29 @@ def openDatabaseConnection():
 
     return engine
 
-def saveStockMarketDataOnDatabase(data, ticker, rawData = 0):
+def saveStockMarketDataOnDatabase(data, ticker, suffix):
     engine = openDatabaseConnection()
     tableName = ticker.replace(' ', '_')
-    if rawData == 1:
-        tableName += '_RAW'
+
+    if suffix != 'CLEAR':
+        tableName += f'_{suffix}'
+
+    rawTables = getAvaliableTikers("RAW")
+    clearTables = getAvaliableTikers("CLEAR")
+    prevTables = getAvaliableTikers("PREV")
+
+    with engine.connect() as connection:
+        if ticker in rawTables:
+            connection.execute(text(f'DROP TABLE "{ticker}_RAW";'))
+        if ticker in clearTables:
+            connection.execute(text(f'DROP TABLE "{ticker}";'))
+        if ticker in prevTables:
+            connection.execute(text(f'DROP TABLE "{ticker}_PREV";'))
+        connection.commit()
+
     data.to_sql(tableName, engine, if_exists='replace', index=True)
 
-    if rawData == 1:
-        print(f'Dados de {ticker} salvos na tabela {tableName}.')
-    else:
-        with engine.connect() as connection:
-            connection.execute(text(f'DROP TABLE "{tableName}_RAW";'))
-            connection.commit()
-        print(f'Dados já tratados de {ticker} salvos na tabela {tableName}.')
+    print(f'Dados de {ticker} salvos na tabela {tableName}.')
 
 def getAvaliableTikers(suffix):
     connection = openDatabaseConnection()

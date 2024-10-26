@@ -7,7 +7,7 @@ def clearData(ticker):
     dataframe = getTickerData(ticker, 1)
     dataframe = removeDuplicates(dataframe)
     dataframe = dataImputationForNullData(dataframe)
-    saveStockMarketDataOnDatabase(dataframe, ticker)
+    saveStockMarketDataOnDatabase(dataframe, ticker, 'CLEAR')
 
 def removeDuplicates(tickerDataframe):
     return tickerDataframe.drop_duplicates(subset=['Date'], keep='first')
