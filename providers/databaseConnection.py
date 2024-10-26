@@ -32,14 +32,14 @@ def saveStockMarketDataOnDatabase(data, ticker, rawData = 0):
             connection.commit()
         print(f'Dados já tratados de {ticker} salvos na tabela {tableName}.')
 
-def getAvaliableTikers(rawData = 0):
+def getAvaliableTikers(suffix):
     connection = openDatabaseConnection()
-    if rawData == 1:
-        sql = """
-            SELECT REPLACE(table_name, '_RAW', '') as name 
+    if suffix != 'CLEAR':
+        sql = f"""
+            SELECT REPLACE(table_name, '_{suffix}', '') as name 
             FROM information_schema.tables 
             WHERE table_schema='public' 
-            AND table_name LIKE '%%_RAW'
+            AND table_name LIKE '%%_{suffix}'
         """
     else:
         sql = """
@@ -47,6 +47,7 @@ def getAvaliableTikers(rawData = 0):
             FROM information_schema.tables 
             WHERE table_schema='public' 
             AND table_name NOT LIKE '%%_RAW'
+            AND table_name NOT LIKE '%%_PREV'
         """
     tables = pandas.read_sql(sql, connection)
     data = tables['name'].tolist()
@@ -62,3 +63,19 @@ def getTickerData(ticker, rawData = 0):
     data = pandas.read_sql(sql, connection)
 
     return data
+
+def saveStockMarketPredictionsOnDatabase(data, ticker):
+    engine = openDatabaseConnection()
+
+    prevTables = getAvaliableTikers("PREV")
+    tableName = f"{ticker}_PREV"
+
+    if ticker in prevTables:
+        predictionType = data['PredictionType'].iloc[0]
+        with engine.connect() as connection:
+            connection.execute(text(f'DELETE FROM "{tableName}" WHERE "PredictionType" = {predictionType};'))
+            connection.commit()
+
+    data.to_sql(tableName, engine, if_exists='append', index=False)
+
+    print(f'Dados de Previsão de {ticker} salvos na tabela {tableName}.')

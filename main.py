@@ -1,8 +1,12 @@
+import logging
+import os
 from providers.cleaningData import clearData
 from providers.collectingData import downloadStockMarketData
 from providers.databaseConnection import getAvaliableTikers
 from providers.modelLSTM import analyzingDataWithLSTM
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+logging.getLogger('tensorflow').setLevel(logging.ERROR)
 
 def main():
     option = 1
@@ -27,7 +31,7 @@ def main():
 
             downloadStockMarketData(tickers, dateStart, dateEnd)
         elif option == 2:
-            tickers = getAvaliableTikers(1)
+            tickers = getAvaliableTikers('RAW')
             print("Tikers disponíveis para limpeza, selecione um:")
             ticker = selectTickerMenu(tickers)
 
@@ -36,7 +40,7 @@ def main():
 
 
         elif option == 3:
-            tickers = getAvaliableTikers()
+            tickers = getAvaliableTikers('CLEAR')
             print("Tikers disponíveis para análise, selecione um:")
             ticker = selectTickerMenu(tickers)
 
@@ -44,11 +48,16 @@ def main():
                 print("Deseja analizar com qual modelo:")
                 print("1- LSTM")
                 print("0- Voltar")
-
                 modelOption = int(input("Modelo: "))
 
+                print("Deseja utilizar que tipo de previsão:")
+                print("1- Dia após dia")
+                print("2- Periodo inteiro")
+
+                predictionType = int(input("Tipo: "))
+
                 if modelOption == 1:
-                    analyzingDataWithLSTM(ticker)
+                    analyzingDataWithLSTM(ticker, predictionType)
 
 
         if option != 0:
