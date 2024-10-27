@@ -5,6 +5,7 @@ from providers.collectingData import downloadStockMarketData
 from providers.databaseConnection import getAvaliableTikers
 from providers.modelLSTM import analyzingDataWithLSTM
 from providers.modelProphet import analyzingDataWithProphet
+from providers.modelRandomForest import analyzingDataWithRandomForest
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 logging.getLogger('tensorflow').setLevel(logging.ERROR)
@@ -45,10 +46,11 @@ def main():
             print("Tikers disponíveis para análise, selecione um:")
             ticker = selectTickerMenu(tickers)
 
-            if ticker != 0:
+            if ticker != 0 and ticker != -1:
                 print("Deseja analizar com qual modelo:")
                 print("1- LSTM")
                 print("2- Prophet")
+                print("3- Random Forest")
                 print("0- Voltar")
                 modelOption = int(input("Modelo: "))
 
@@ -62,6 +64,17 @@ def main():
                     analyzingDataWithLSTM(ticker, predictionType)
                 elif modelOption == 2:
                     analyzingDataWithProphet(ticker, predictionType)
+                elif modelOption == 3:
+                    analyzingDataWithRandomForest(ticker, predictionType)
+            elif ticker == -1:
+                for ticker in tickers:
+                    analyzingDataWithLSTM(ticker,1)
+                    analyzingDataWithLSTM(ticker,2)
+                    analyzingDataWithProphet(ticker,1)
+                    analyzingDataWithProphet(ticker,2)
+                    analyzingDataWithRandomForest(ticker,1)
+                    analyzingDataWithRandomForest(ticker,2)
+
 
 
         if option != 0:
@@ -80,6 +93,8 @@ def selectTickerMenu(tickers):
 
     if 0 < tickerOption <= len(tickers):
         return tickers[tickerOption - 1]
+    elif tickerOption == -1:
+        return  tickerOption
     return 0
 
 if __name__ == "__main__":
