@@ -4,6 +4,7 @@ from providers.cleaningData import clearData
 from providers.collectingData import downloadStockMarketData
 from providers.databaseConnection import getAvaliableTikers
 from providers.modelLSTM import analyzingDataWithLSTM
+from providers.modelProphet import analyzingDataWithProphet
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 logging.getLogger('tensorflow').setLevel(logging.ERROR)
@@ -47,6 +48,7 @@ def main():
             if ticker != 0:
                 print("Deseja analizar com qual modelo:")
                 print("1- LSTM")
+                print("2- Prophet")
                 print("0- Voltar")
                 modelOption = int(input("Modelo: "))
 
@@ -58,6 +60,8 @@ def main():
 
                 if modelOption == 1:
                     analyzingDataWithLSTM(ticker, predictionType)
+                elif modelOption == 2:
+                    analyzingDataWithProphet(ticker, predictionType)
 
 
         if option != 0:

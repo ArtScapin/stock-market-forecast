@@ -81,8 +81,13 @@ def saveStockMarketPredictionsOnDatabase(data, ticker):
 
     if ticker in prevTables:
         predictionType = data['PredictionType'].iloc[0]
+        predictionModel = data['Model'].iloc[0]
         with engine.connect() as connection:
-            connection.execute(text(f'DELETE FROM "{tableName}" WHERE "PredictionType" = {predictionType};'))
+            connection.execute(text(f"""
+                DELETE FROM "{tableName}" 
+                WHERE "PredictionType" = '{predictionType}' 
+                AND "Model" = '{predictionModel}';
+            """))
             connection.commit()
 
     data.to_sql(tableName, engine, if_exists='append', index=False)
