@@ -13,15 +13,15 @@ def analyzingDataWithProphet(ticker, predictionType):
     dataframe, scaler = applyMinMaxScaling(dataframe)
 
     if predictionType == 1:
-        prophet, trainData, testData = createAndTrainModel(dataframe)
-        predictions = makePredictions(prophet, testData, scaler, predictionType)
+        prophet, testData = createAndTrainModel(dataframe)
+        predictions = makePredictions(prophet, testData, scaler)
         totalPredictions = len(testData)
         predictionsDates = [predictions[['ds', 'yhat']].loc[0].values[0]]
         predictionsPrices = [predictions[['ds', 'yhat']].loc[0].values[1]]
         while len(predictionsDates) < totalPredictions:
             step = len(predictionsDates)
-            prophet, trainData, testData = createAndTrainModel(dataframe, step)
-            prediction = makePredictions(prophet, testData, scaler, predictionType)
+            prophet, testData = createAndTrainModel(dataframe, step)
+            prediction = makePredictions(prophet, testData, scaler)
             predictionsDates.append(prediction[['ds', 'yhat']].loc[0].values[0])
             predictionsPrices.append(prediction[['ds', 'yhat']].loc[0].values[1])
 
@@ -30,8 +30,8 @@ def analyzingDataWithProphet(ticker, predictionType):
             'yhat': list(predictionsPrices)
         })
     else:
-        prophet, trainData, testData = createAndTrainModel(dataframe)
-        predictions = makePredictions(prophet, testData, scaler, predictionType)
+        prophet, testData = createAndTrainModel(dataframe)
+        predictions = makePredictions(prophet, testData, scaler)
 
     save(predictions, ticker, predictionType)
 
@@ -40,6 +40,7 @@ def applyMinMaxScaling(dataframe):
     scaler = MinMaxScaler(feature_range=(0, 1))
     dataframe['y'] = scaler.fit_transform(dataframe[['y']])
     return dataframe, scaler
+
 
 def createAndTrainModel(dataframe, step = 0):
     trainSize = int(len(dataframe) * 0.8) + step
@@ -55,9 +56,10 @@ def createAndTrainModel(dataframe, step = 0):
 
     prophet.fit(trainData)
 
-    return prophet, trainData, testData
+    return prophet, testData
 
-def makePredictions(prophet, testData, scaler, predictionType):
+
+def makePredictions(prophet, testData, scaler):
     predictDates = pandas.DataFrame({'ds': testData['ds']})
 
     predictedPrices = prophet.predict(predictDates)
@@ -65,17 +67,6 @@ def makePredictions(prophet, testData, scaler, predictionType):
     predictedPrices['yhat'] = scaler.inverse_transform(predictedPrices[['yhat']].values)
 
     return predictedPrices
-
-def plotPredictions(historicalData, testData, predictedPrices, ticker):
-    plt.figure(figsize=(12, 6))
-    plt.plot(historicalData['day'], historicalData['y'], color='green', label='Dados Reais (Treino)')
-    plt.plot(testData['day'], testData['y'], color='blue', label='Dados Reais (Teste)')
-    plt.plot(predictedPrices['day'], predictedPrices['yhat'], color='red', label='Previsões')
-    plt.title(f'Previsão do Preço da Ação {ticker} usando Prophet')
-    plt.xlabel('Dias (Sequência)')
-    plt.ylabel('Preço de Fechamento (R$)')
-    plt.legend()
-    plt.show()
 
 
 def save(predictions, ticker, predictionType):
@@ -88,5 +79,3 @@ def save(predictions, ticker, predictionType):
         'PredictionType': predictionType
     })
     saveStockMarketPredictionsOnDatabase(dataframe, ticker)
-
-analyzingDataWithProphet("PETR4", 1)
