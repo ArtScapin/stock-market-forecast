@@ -63,10 +63,10 @@ def getAvaliableTikers(suffix):
 
     return data
 
-def getTickerData(ticker, rawData = 0):
+def getTickerData(ticker, suffix):
     connection = openDatabaseConnection()
-    if rawData == 1:
-        sql = f'SELECT * FROM "{ticker}_RAW" ORDER BY "Date" ASC'
+    if suffix != 'CLEAR':
+        sql = f'SELECT * FROM "{ticker}_{suffix}" ORDER BY "Date" ASC'
     else:
         sql = f'SELECT * FROM "{ticker}" ORDER BY "Date" ASC'
     data = pandas.read_sql(sql, connection)

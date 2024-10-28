@@ -1,12 +1,11 @@
 import pandas
 from prophet import Prophet
-import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 from providers.databaseConnection import getTickerData, saveStockMarketPredictionsOnDatabase
 
 
 def analyzingDataWithProphet(ticker, predictionType):
-    dataframe = getTickerData(ticker)
+    dataframe = getTickerData(ticker, "CLEAR")
     dataframe = dataframe[['Close', 'Date']].reset_index()
     dataframe.rename(columns={'Date': 'ds', 'Close': 'y'}, inplace=True)
 

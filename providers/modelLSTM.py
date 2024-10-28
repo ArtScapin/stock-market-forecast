@@ -8,7 +8,7 @@ from providers.databaseConnection import getTickerData, saveStockMarketPredictio
 
 
 def analyzingDataWithLSTM(ticker, predictionType):
-    dataframe = getTickerData(ticker)
+    dataframe = getTickerData(ticker, "CLEAR")
     closingPrices = dataframe[['Close']].values
 
     scaledData, scaler = applyMinMaxScaling(closingPrices)
@@ -62,14 +62,14 @@ def createAndTrainModel(dataframe):
 def makePredictions(model, sequencesTest, scaler, predictionType):
     predictedPrices = []
     if predictionType == 1:
+        predictedPrices = model.predict(sequencesTest)
+    else:
         sequence = sequencesTest[0]
         for _ in range(len(sequencesTest)):
             prediction = model.predict(sequence.reshape(1, sequence.shape[0], sequence.shape[1]))
             predictedPrices.append(prediction[0])
             sequence = np.roll(sequence, -1, axis=0)
             sequence[-1] = prediction
-    else:
-        predictedPrices = model.predict(sequencesTest)
 
     predictedPricesFull = scaler.inverse_transform(predictedPrices)
 

@@ -2,19 +2,19 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split as trainTestSplit
 from providers.databaseConnection import getTickerData, saveStockMarketPredictionsOnDatabase
 
 
 def analyzingDataWithRandomForest(ticker, predictionType):
-    dataframe = getTickerData(ticker)
+    dataframe = getTickerData(ticker, "CLEAR")
     closingPrices = dataframe[['Close']].values
 
     scaledData, scaler = applyMinMaxScaling(closingPrices)
 
-    model, X_test = createAndTrainModel(scaledData)
+    randomForest, XTest = createAndTrainModel(scaledData)
 
-    predictedPrices = makePredictions(model, X_test, scaler, predictionType)
+    predictedPrices = makePredictions(randomForest, XTest, scaler, predictionType)
 
     predictedDates = dataframe[['Date']].values
     predictedDates = predictedDates[len(predictedDates) - len(predictedPrices):]
@@ -39,23 +39,29 @@ def createAndTrainModel(data):
     lookBack = 60
     sequences, values = createSequences(data, lookBack)
 
-    X_train, X_test, y_train, y_test = train_test_split(sequences, values, test_size=0.2, random_state=42)
+    XTrain, XTest, yTrain, yTest = trainTestSplit(sequences, values, test_size=0.2, random_state=42)
 
-    model = RandomForestRegressor(n_estimators=100, random_state=42)
-    model.fit(X_train, y_train)
+    randomForest = RandomForestRegressor(n_estimators=100, random_state=42)
+    randomForest.fit(XTrain, yTrain)
 
-    return model, X_test
+    return randomForest, XTest
 
 
-def makePredictions(model, X_test, scaler, predictionType):
-    predictedPrices = model.predict(X_test)
+def makePredictions(randomForest, XTest, scaler, predictionType):
+    predictedPrices = []
 
     if predictionType == 1:
-        for i in range(1, len(X_test)):
-            next_pred = model.predict([X_test[i]])
-            predictedPrices = np.append(predictedPrices, next_pred)
+        currentSequence = XTest[0].copy()
+        for _ in range(len(XTest)):
+            nextPred = randomForest.predict([currentSequence])[0]
+            predictedPrices.append(nextPred)
 
-    predictedPrices = predictedPrices.reshape(-1, 1)
+            currentSequence = np.roll(currentSequence, -1)
+            currentSequence[-1] = nextPred
+    else:
+        predictedPrices = randomForest.predict(XTest)
+
+    predictedPrices = np.array(predictedPrices).reshape(-1, 1)
     predictedPricesFull = scaler.inverse_transform(predictedPrices)
 
     return predictedPricesFull

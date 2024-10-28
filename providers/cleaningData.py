@@ -4,7 +4,7 @@ from workalendar.america import Brazil
 
 
 def clearData(ticker):
-    dataframe = getTickerData(ticker, 1)
+    dataframe = getTickerData(ticker, "RAW")
     dataframe = removeDuplicates(dataframe)
     dataframe = dataImputationForNullData(dataframe)
     saveStockMarketDataOnDatabase(dataframe, ticker, 'CLEAR')
