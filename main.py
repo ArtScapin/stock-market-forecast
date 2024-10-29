@@ -1,5 +1,7 @@
 import logging
 import os
+
+from providers.buildGraphs import buildGraph
 from providers.cleaningData import clearData
 from providers.collectingData import downloadStockMarketData
 from providers.databaseConnection import getAvaliableTikers
@@ -7,8 +9,10 @@ from providers.modelLSTM import analyzingDataWithLSTM
 from providers.modelProphet import analyzingDataWithProphet
 from providers.modelRandomForest import analyzingDataWithRandomForest
 
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 logging.getLogger('tensorflow').setLevel(logging.ERROR)
+
 
 def main():
     option = 1
@@ -17,6 +21,7 @@ def main():
         print("1- Download de dados.")
         print("2- Limpeza de dados.")
         print("3- Análise de dados.")
+        print("4- Gerar gráficos das previsões.")
         print("0- Sair.")
         option = int(input("Número do serviço: "))
 
@@ -32,14 +37,17 @@ def main():
             dateEnd = getInputWithDefault("Qual é a data final do período que deseja baixar os dados? (YYYY-MM-DD): ", '2023-12-31')
 
             downloadStockMarketData(tickers, dateStart, dateEnd)
+
         elif option == 2:
             tickers = getAvaliableTikers('RAW')
             print("Tikers disponíveis para limpeza, selecione um:")
             ticker = selectTickerMenu(tickers)
 
-            if ticker != 0:
+            if ticker != 0 and ticker != -1:
                 clearData(ticker)
-
+            if ticker != -1:
+                for ticker in tickers:
+                    clearData(ticker)
 
         elif option == 3:
             tickers = getAvaliableTikers('CLEAR')
@@ -47,25 +55,12 @@ def main():
             ticker = selectTickerMenu(tickers)
 
             if ticker != 0 and ticker != -1:
-                print("Deseja analizar com qual modelo:")
-                print("1- LSTM")
-                print("2- Prophet")
-                print("3- Random Forest")
-                print("0- Voltar")
-                modelOption = int(input("Modelo: "))
-
-                print("Deseja utilizar que tipo de previsão:")
-                print("1- Dia após dia")
-                print("2- Periodo inteiro")
-
-                predictionType = int(input("Tipo: "))
-
-                if modelOption == 1:
-                    analyzingDataWithLSTM(ticker, predictionType)
-                elif modelOption == 2:
-                    analyzingDataWithProphet(ticker, predictionType)
-                elif modelOption == 3:
-                    analyzingDataWithRandomForest(ticker, predictionType)
+                    analyzingDataWithLSTM(ticker,1)
+                    analyzingDataWithLSTM(ticker,2)
+                    analyzingDataWithProphet(ticker,1)
+                    analyzingDataWithProphet(ticker,2)
+                    analyzingDataWithRandomForest(ticker,1)
+                    analyzingDataWithRandomForest(ticker,2)
             elif ticker == -1:
                 for ticker in tickers:
                     analyzingDataWithLSTM(ticker,1)
@@ -75,14 +70,35 @@ def main():
                     analyzingDataWithRandomForest(ticker,1)
                     analyzingDataWithRandomForest(ticker,2)
 
+        elif option == 4:
+            tickers = getAvaliableTikers('PREV')
+            print("Tikers com previsões disponíveis, selecione um:")
+            ticker = selectTickerMenu(tickers)
+            print("Quais modelos inserir no gráfico? (separe com vírgula para selecionar mais de um)")
+            print("-LSTM")
+            print("-Prophet")
+            print("-RandomForest")
+            models = input("Modelos: ")
+            models = models.replace(" ", "").split(",")
+
+
+            if ticker != 0 and ticker != -1:
+                buildGraph(ticker, 1, models)
+                buildGraph(ticker, 2, models)
+            elif ticker == -1:
+                for ticker in tickers:
+                    buildGraph(ticker, 1, models)
+                    buildGraph(ticker, 2, models)
 
 
         if option != 0:
             print("\n--------------------------------------------------------------------------------\n")
 
+
 def getInputWithDefault(prompt, default):
     userInput = input(prompt)
     return userInput if userInput else default
+
 
 def selectTickerMenu(tickers):
     for index, ticker in enumerate(tickers, start=1):
@@ -96,6 +112,7 @@ def selectTickerMenu(tickers):
     elif tickerOption == -1:
         return  tickerOption
     return 0
+
 
 if __name__ == "__main__":
     main()
