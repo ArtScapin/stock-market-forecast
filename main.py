@@ -8,7 +8,7 @@ from providers.databaseConnection import getAvaliableTikers
 from providers.modelLSTM import analyzingDataWithLSTM
 from providers.modelProphet import analyzingDataWithProphet
 from providers.modelRandomForest import analyzingDataWithRandomForest
-
+from providers.simulator import dayTradeSimulator
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 logging.getLogger('tensorflow').setLevel(logging.ERROR)
@@ -22,6 +22,7 @@ def main():
         print("2- Limpeza de dados.")
         print("3- Análise de dados.")
         print("4- Gerar gráficos das previsões.")
+        print("5- Simulador de DayTrade.")
         print("0- Sair.")
         option = int(input("Número do serviço: "))
 
@@ -89,6 +90,18 @@ def main():
                 for ticker in tickers:
                     buildGraph(ticker, 1, models)
                     buildGraph(ticker, 2, models)
+
+        elif option == 5:
+            tickers = getAvaliableTikers('PREV')
+            print("Tikers com previsões disponíveis para simulação, selecione um:")
+            ticker = selectTickerMenu(tickers)
+
+            if ticker != 0 and ticker != -1:
+                dayTradeSimulator(ticker)
+            elif ticker == -1:
+                for ticker in tickers:
+                    dayTradeSimulator(ticker)
+
 
 
         if option != 0:
