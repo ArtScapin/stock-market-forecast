@@ -13,7 +13,7 @@ def buildGraph(ticker, predictionType, models):
     plt.figure(figsize=(12, 6))
 
     for model in models:
-        color = "green" if model == 'LSTM' else "red" if model == 'Prophet' else "pink"
+        color = "green" if model == 'LSTM' else "red" if model == 'Prophet' else "orange"
         predictionsModel = predictions[predictions['Model'] == model]
         plt.plot(predictionsModel['Date'], predictionsModel['Close'], color=f'{color}', label=f'{model}')
     plt.plot(dataframe['Date'], dataframe['Close'], color='blue', label='Dados reais')

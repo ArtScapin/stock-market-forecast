@@ -51,6 +51,8 @@ def makePredictions(randomForest, XTest, scaler, predictionType):
     predictedPrices = []
 
     if predictionType == 1:
+        predictedPrices = randomForest.predict(XTest)
+    else:
         currentSequence = XTest[0].copy()
         for _ in range(len(XTest)):
             nextPred = randomForest.predict([currentSequence])[0]
@@ -58,8 +60,6 @@ def makePredictions(randomForest, XTest, scaler, predictionType):
 
             currentSequence = np.roll(currentSequence, -1)
             currentSequence[-1] = nextPred
-    else:
-        predictedPrices = randomForest.predict(XTest)
 
     predictedPrices = np.array(predictedPrices).reshape(-1, 1)
     predictedPricesFull = scaler.inverse_transform(predictedPrices)
