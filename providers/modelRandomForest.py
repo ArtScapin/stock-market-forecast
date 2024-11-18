@@ -39,12 +39,14 @@ def createAndTrainModel(data):
     lookBack = 60
     sequences, values = createSequences(data, lookBack)
 
-    XTrain, XTest, yTrain, yTest = trainTestSplit(sequences, values, test_size=0.2, random_state=42)
+    trainSize = int(len(sequences) * 0.8)
+    sequencesTrain, sequencesTest = sequences[:trainSize], sequences[trainSize:]
+    valuesTrain = values[:trainSize]
 
     randomForest = RandomForestRegressor(n_estimators=100, random_state=42)
-    randomForest.fit(XTrain, yTrain)
+    randomForest.fit(sequencesTrain, valuesTrain)
 
-    return randomForest, XTest
+    return randomForest, sequencesTest
 
 
 def makePredictions(randomForest, XTest, scaler, predictionType):
