@@ -93,3 +93,7 @@ def saveStockMarketPredictionsOnDatabase(data, ticker):
     data.to_sql(tableName, engine, if_exists='append', index=False)
 
     print(f'Dados de Previsão de {ticker} salvos na tabela {tableName}.')
+
+def saveMSEOnDatabase(data):
+    engine = openDatabaseConnection()
+    data.to_sql("MSE", engine, if_exists='append', index=False)
