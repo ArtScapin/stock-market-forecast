@@ -80,6 +80,8 @@ def main():
             print("-Prophet")
             print("-RandomForest")
             models = input("Modelos: ")
+            if models == "all":
+                models = "LSTM, Prophet, RandomForest"
             models = models.replace(" ", "").split(",")
 
 
