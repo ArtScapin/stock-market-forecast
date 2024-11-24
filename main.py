@@ -46,7 +46,7 @@ def main():
 
             if ticker != 0 and ticker != -1:
                 clearData(ticker)
-            if ticker != -1:
+            elif ticker == -1:
                 for ticker in tickers:
                     clearData(ticker)
 
