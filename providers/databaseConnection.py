@@ -57,6 +57,7 @@ def getAvaliableTikers(suffix):
             WHERE table_schema='public' 
             AND table_name NOT LIKE '%%_RAW'
             AND table_name NOT LIKE '%%_PREV'
+            AND table_name NOT LIKE 'MSE'
         """
     tables = pandas.read_sql(sql, connection)
     data = tables['name'].tolist()
