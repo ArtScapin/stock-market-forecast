@@ -16,7 +16,6 @@ def buildGraph(ticker, predictionType, models):
     results = []
     for model in models:
         predictionsModel = predictions[predictions['Model'] == model]
-        print(len(predictionsModel))
         dataframeMergedWithPredictions = pandas.merge(dataframe, predictionsModel, on='Date', suffixes=('Real', 'Prev'))
         meanSquaredError = MeanSquaredError(dataframeMergedWithPredictions['CloseReal'], dataframeMergedWithPredictions['ClosePrev'])
         results.append({
@@ -35,5 +34,3 @@ def buildGraph(ticker, predictionType, models):
     plt.show()
 
     saveMSEOnDatabase(pandas.DataFrame(results))
-
-buildGraph('ITSA4', 1, ['LSTM', 'Prophet', 'RandomForest'])
