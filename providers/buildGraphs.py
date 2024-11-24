@@ -9,7 +9,7 @@ def buildGraph(ticker, predictionType, models):
     dataframe = getTickerData(ticker, "CLEAR")
     predictions = getTickerData(ticker, "PREV")
     predictions = predictions[predictions['PredictionType'] == predictionType]
-    dataframe = dataframe[round(len(dataframe) * 0.8):]
+    dataframe = dataframe[int(len(dataframe) * 0.8):]
     predictionType = 'daily' if predictionType == 1 else 'period'
 
     plt.figure(figsize=(12, 6))
