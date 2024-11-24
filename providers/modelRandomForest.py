@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import train_test_split as trainTestSplit
 from providers.databaseConnection import getTickerData, saveStockMarketPredictionsOnDatabase
 
 
@@ -39,7 +38,7 @@ def createAndTrainModel(data):
     lookBack = 60
     sequences, values = createSequences(data, lookBack)
 
-    trainSize = int(len(sequences) * 0.8)
+    trainSize = int((len(sequences) + lookBack) * 0.8) - lookBack
     sequencesTrain, sequencesTest = sequences[:trainSize], sequences[trainSize:]
     valuesTrain = values[:trainSize]
 

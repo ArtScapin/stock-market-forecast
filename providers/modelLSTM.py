@@ -39,8 +39,7 @@ def createSequences(data, lookBack):
 def createAndTrainModel(dataframe):
     lookBack = 60
     sequences, values = createSequences(dataframe, lookBack)
-
-    trainSize = int(len(sequences) * 0.8)
+    trainSize = int((len(sequences) + lookBack) * 0.8) - lookBack
     sequencesTrain, sequencesTest = sequences[:trainSize], sequences[trainSize:]
     valuesTrain = values[:trainSize]
 
