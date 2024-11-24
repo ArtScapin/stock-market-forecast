@@ -16,6 +16,7 @@ def buildGraph(ticker, predictionType, models):
     results = []
     for model in models:
         predictionsModel = predictions[predictions['Model'] == model]
+        print(len(predictionsModel))
         dataframeMergedWithPredictions = pandas.merge(dataframe, predictionsModel, on='Date', suffixes=('Real', 'Prev'))
         meanSquaredError = MeanSquaredError(dataframeMergedWithPredictions['CloseReal'], dataframeMergedWithPredictions['ClosePrev'])
         results.append({
@@ -25,12 +26,14 @@ def buildGraph(ticker, predictionType, models):
             "MSE": meanSquaredError
         })
         color = "green" if model == 'LSTM' else "red" if model == 'Prophet' else "orange"
-        plt.plot(predictionsModel['Date'], predictionsModel['Close'], color=f'{color}', label=f'{model}')
-    plt.plot(dataframe['Date'], dataframe['Close'], color='blue', label='Dados reais')
+        plt.plot(range(1, len(predictionsModel)+1), predictionsModel['Close'], color=f'{color}', label=f'{model}')
+    plt.plot(range(1, len(dataframe)+1), dataframe['Close'], color='blue', label='Dados reais')
     plt.title(f'Previsão do Preço da Ação {ticker} usando IA ({predictionType})')
-    plt.xlabel('Dias (Sequência)')
+    plt.xlabel('Dias')
     plt.ylabel('Preço de Fechamento (R$)')
     plt.legend()
     plt.show()
 
     saveMSEOnDatabase(pandas.DataFrame(results))
+
+buildGraph('ITSA4', 1, ['LSTM', 'Prophet', 'RandomForest'])
