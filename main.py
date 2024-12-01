@@ -2,6 +2,7 @@ import logging
 import os
 
 from providers.buildGraphs import buildGraph
+from providers.calculateMSE import calculateMSE
 from providers.cleaningData import clearData
 from providers.collectingData import downloadStockMarketData
 from providers.databaseConnection import getAvaliableTikers
@@ -23,6 +24,7 @@ def main():
         print("3- Análise de dados.")
         print("4- Gerar gráficos das previsões.")
         print("5- Simulador de DayTrade.")
+        print("6- Calcular MSE.")
         print("0- Sair.")
         option = int(input("Número do serviço: "))
 
@@ -104,7 +106,10 @@ def main():
                 for ticker in tickers:
                     dayTradeSimulator(ticker)
 
-
+        elif option == 6:
+            print("Calculando MSE...")
+            calculateMSE()
+            print("MSE calculado e salvo no banco.")
 
         if option != 0:
             print("\n--------------------------------------------------------------------------------\n")
